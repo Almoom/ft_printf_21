@@ -59,8 +59,25 @@ void var(char *format, ...)
 }
 
 
+// char	*ft_strcptlz(char *s, int c, int flag)
+// {
+// 	if (!flag)
+// 		while (*s == c)
+// 			s++;
+// 	else
+// 	{
+// 		s = ft_strrev_free(s, 0);
+// 		while (*s == c)
+// 			s++;
+// 		s = ft_strrev_free(s, 0);
+// 	}
+// 	return (s);
+// }
 
-
+// unsigned clear_bit(unsigned aValue, unsigned aNumber)
+// {
+//   return aValue & (~(1 << aNumber));
+// }
 
 char *ft_itoa_base(int n, int base)
 {
@@ -86,11 +103,6 @@ char *ft_itoa_base(int n, int base)
 	return (s = ft_strrev_free(s, 1));
 }
 
-// unsigned clear_bit(unsigned aValue, unsigned aNumber)
-// {
-//   return aValue & (~(1 << aNumber));
-// }
-
 char	*ft_strnzero(char *s, size_t n)
 {
 	size_t i;
@@ -101,7 +113,7 @@ char	*ft_strnzero(char *s, size_t n)
 	arr = "0";
 	len = ft_strlen(s);
 	while (++i < n - len)
-		s = ft_strjoin_free(s, arr, 1, 0);
+		s = ft_strjoin(s, arr);
 	return (s);
 }
 
@@ -111,9 +123,11 @@ char	*ft_strsum(char *s1, char *s2)
 	char *sum;
 	size_t max;
 
+
 	max = (ft_strlen(s1) > ft_strlen(s2)) ? ft_strlen(s1) : ft_strlen(s2);
 	s1 = ft_strnzero(s1, max);
 	s2 = ft_strnzero(s2, max);
+	//printf("%s__%s\n", s1, s2);
 	sum = ft_memset(ft_strnew(max + 1), '0', max);
 	i = -1;
 	while (s1[++i])
@@ -139,46 +153,25 @@ char	*ft_pwr2(int pwr)
 	return (t = ft_strrev_free(t, 0));
 }
 
-char	*ft_strcptlz(char *s, int c, int flag)
+char	*ft_strncptlz(char *s, int c, int n, int withend)
 {
-	if (!flag)
-		while (*s == c)
+	int i;
+
+	i = (n == 0) ? -ft_strlen(s) : 0;
+	if (!withend)
+		while (*s == c && i++ < n)
 			s++;
 	else
 	{
 		s = ft_strrev_free(s, 0);
-		while (*s == c)
+		while (*s == c && i++ < n)
 			s++;
 		s = ft_strrev_free(s, 0);
 	}
 	return (s);
 }
 
-char	*ft_strncptlz(char *s, int c, int n, int flag)
-{
-	int i;
-
-	i = 0;
-	if (!flag)
-		while (*s == c && i < n)
-		{
-			i++;
-			s++;
-		}
-	else
-	{
-		s = ft_strrev_free(s, 0);
-		while (*s == c && i < n)
-		{
-			i++;
-			s++;
-		}
-		s = ft_strrev_free(s, 0);
-	}
-	return (s = ft_strdup(s));
-}
-
-char	*ft_strjoinchar(char *s, char c, int flag)
+char	*ft_strjoinchar(char *s, char c, int needfree)
 {
 	char	*t;
 	size_t	i;
@@ -193,85 +186,53 @@ char	*ft_strjoinchar(char *s, char c, int flag)
 	while (++i < l)
 		t[i] = s[i];
 	t[i] = c;
-
-	flag == 1 ? free(s) : 0;
+	needfree == 1 ? free(s) : 0;
 	return (t);
 }
 
-char	*ft_strdvd(char *s, size_t len, int pwr)
+char *ft_ldaccuracy(char *s, int t, int len)
+{
+	s = (int)ft_strlen(s) > t + len ? ft_strsub_free(s, 0, t + len + 1, 1) : s;
+	return (s);
+}
+
+char	*ft_strdvd(char *s, size_t len, int pwr, int acc)
 {
 	char *rez;
-	int i;
 	char *mask;
 
 	while (pwr-- > 0)
 	{
-		i = -1;
-		mask = ft_strnew(0);
+		mask = ft_strdup("0");
 		rez = ft_strnew(0);
-		while (s[++i])
+		while (*s)
 		{
-			rez = ft_strjoinchar(rez, (s[i] - '0') / 2 + '0', 1);
-			if ((s[i] - '0') % 2 == 0)
-				mask = ft_strjoin_free(mask, "0", 1, 0);
-			else
-			{
-				mask = ft_strjoin_free(mask, "5", 1, 0);
-				rez = (!s[i + 1]) ? ft_strjoin_free(rez, "0", 1, 0) : rez;
-			}
+			rez = ft_strjoinchar(rez, (*s - '0') / 2 + '0', 1);
+			mask = ft_strjoinchar(mask, ((*s - '0') % 2 == 0) ? '0' : '5', 1);
+			rez = !s[1] && (*s - '0') % 2 == 1 ?
+			ft_strjoinchar(rez, '0', 1) : rez;
+			s++;
 		}
 		rez = ft_strrev_free(ft_strsum(ft_strrev_free(rez, 1),
-		ft_strrev_free(ft_strcptlz(mask, '0', 1), 1)), 1);
-		s = ft_strdup(rez);
+		ft_strrev_free(ft_strncptlz(mask, '0', 1, 1), 1)), 1);
+		s = ft_ldaccuracy(rez, acc, len);
+
 	}
+	while (ft_strlen(s) < (size_t)acc + 1 + len)
+		s = ft_strjoinchar(s, '0', 0);
 	return (s = ft_strncptlz(s, '0', len, 0));
 }
 
-// int ft_ldround(long double d)
-// {
-//
-// }
-
-int		main()//int argc, char **argv)
+int		ft_ldpwr(long double *d)
 {
-	// char *str;
-	// var("%d", 255, 13);
-	// printf("%d %d", 255, 13);
-	// var("%s", "test string");
-	// var("%c", '&');
-	//printf("%d\n", ft_pwr(2, 7));
-
-	// if (argc == 3)
-	// {
-	// 	ft_putstr(str = ft_itoa_base(ft_atoi(argv[1]), ft_atoi(argv[2])));
-	// 	ft_putchar('\n');
-	// 	free(str);
-	// 	printf("%O\n", ft_atoi(argv[1]));
-	// }
-
-	//long double n = 0.01171875;
-	long double n = 0.00003;
-	// n = n * n *n *n *n *n *n;
-	// n = n * n *n *n *n *n *n;
-	// n = n * n;
-	// n = n * n;
-	//n = n * n;
-
-	//long double n = 0.25;
 	char *s;
-	char *num;
-	char *mant;
-	char *num2 = "0";
-	int i = -1;
-	int pwr = 1;
-	char *verh;
-	char *verh2 = "0";
-	char *niz;
-	size_t len;
-	//long double t;
+	int pwr;
+	size_t i;
 
-	ft_print_bit(&n, sizeof(n), 1);
-	s = ft_strrev_free(ft_strsub(ft_print_bit(&n, sizeof(n), 0), 48, 16), 1);
+	i = -1;
+	pwr = 1;
+	s = ft_strrev_free(ft_strsub(ft_print_bit(d, sizeof(*d), 0), 48, 16), 1);
+	printf("%s\n", s);
 	while (++i < 14)
 	{
 		if (s[14] == '1')
@@ -280,44 +241,132 @@ int		main()//int argc, char **argv)
 			pwr = (s[i] == '0') ? pwr + ft_atoi(ft_pwr2(i)) : pwr;
 	}
 	pwr = (s[14] == '1') ? pwr : 1 - pwr;
-	printf("%d\n", pwr);
 	free(s);
+	return (pwr);
+}
+
+char	*ft_realpart(char *s, int pwr, int znak)
+{
+	int		i;
+	int		k;
+	char 	*num;
+	char 	*num2;
+
 	i = -1;
-	s = ft_strsub(ft_print_bit(&n, sizeof(n), 0), 64, 64);
-	printf("%s\n", s);
-	if (pwr >= 0)
+	num2 = "0";
+	k = pwr > 63 ? pwr - 63 : 0;
+	num = ft_strrev_free(ft_strsub(s, 0, pwr + 1), 1);
+	while (num[++i])
+		num2 = ft_strrev_free(ft_strsum(ft_strrev_free(num2, 0),
+		ft_strrev_free((num[i] == '1') ? ft_pwr2(i + k) : "0", 0)), 1);
+	return (znak ? ft_strjoin_free("-", num2, 0, 1) : num2);
+}
+
+char	*ft_unrealpart(char *s)
+{
+	int		i;
+	size_t	len;
+	char	*verh2;
+
+	i = -1;
+	verh2 = "0";
+	len = ft_strlen(s);
+	while (s[++i])
+		verh2 = ft_strrev_free(ft_strsum(ft_strrev_free(verh2, 0),
+		ft_strrev_free((s[i] == '1') ? ft_pwr2(i) : "0", 0)), 1);
+	return (ft_strdvd(verh2, ft_strlen(verh2), len, 5));
+}
+
+char *ft_ldround(char *num, char *mant, int c)
+{
+	if (mant[ft_strlen(mant) - 1] > '4')
+		mant = (mant[ft_strlen(mant) - 2] == '9') ?
+		ft_strrev_free(ft_strsum(ft_strrev_free(ft_strsub_free
+		(mant, 0, ft_strlen(mant) - 1, 0), 0), "1"), 1) : ft_strjoinchar
+		(ft_strsub_free(mant, 0, ft_strlen(mant) - 2, 0), c + 1, 1);
+	else
+		mant = ft_strjoinchar
+		(ft_strsub_free(mant, 0, ft_strlen(mant) - 2, 0), c, 1);
+	num = (ft_isdigit(num[0]) || (ft_isdigit(num[1]) && num[0] == '-')) ?
+	ft_strjoin_free(ft_strjoinchar(num, '.', 0), mant, 1, 1) : num;
+	return (num);
+}
+
+char *ft_ldseparat(char *s, int pwr, int c)
+{
+	char *num;
+	char *mant;
+	int i;
+
+	mant = "";
+	i = -1;
+	if (pwr == 16384 && ft_strchr(s + 1, '1'))
+		num = "nan";
+	else if (pwr == 16384 && !ft_strchr(s + 1, '1'))
+		num = (c == '0') ? "inf" : "-inf";
+	else if (pwr >= 0)
 	{
-		num = ft_strrev_free(ft_strsub(s, 0, pwr + 1), 1);
-		while (num[++i])
-			num2 = ft_strrev_free(ft_strsum(ft_strrev_free(num2, 0), ft_strrev_free((num[i] == '1') ? ft_pwr2(i) : "0", 0)), 1);
-		//printf("%s\n", num2);
-		/*printf("%s\n", */mant = ft_strsub(s, pwr + 1, 64)/*)*/;
+		num = ft_realpart(s, pwr, (c - 48));
+		mant = ft_strsub(s, pwr + 1, 64);
 	}
 	else
 	{
+		num = (c - 48) ? "-0" : "0";
 		mant = s;
 		while (++i < -pwr - 1)
 			mant = ft_strjoin_free("0", mant, 0, 1);
-		//printf("%s\n", mant);
-
 	}
-	/*printf("%s\n", */mant = ft_strcptlz(mant, '0', 1)/*)*/;
-	len = ft_strlen(mant);
-	i = -1;
-	verh = ft_strrev_free(mant, 1);
-	while (verh[++i])
-		verh2 = ft_strrev_free(ft_strsum(ft_strrev_free(verh2, 0), ft_strrev_free((verh[i] == '1') ? ft_pwr2(i) : "0", 0)), 1);
-	printf("%s\n", verh2);
-	niz = ft_pwr2(ft_strlen(verh));
-	printf("%s\n", niz);
-	//printf("%zu\n", len);
-	// printf("%.100Lf\n", n);
-	// printf("%.5Le\n", n);
-	//printf("%s\n", ft_strdvd("3", 8));
+	mant = ft_unrealpart(ft_strrev_free(ft_strncptlz(mant, '0', 0, 1), 1));
+	return (ft_ldround(num, mant, mant[ft_strlen(mant) - 2]));
+}
 
-	printf("%s\n", ft_strdvd(verh2, ft_strlen(verh2), len));
-	// printf("%s\n", ft_strncptlz(ft_strdvd(verh2, len), '0', len / 3.3, 0));
+char	*ft_ld(long double *d)
+{
+	char *s;
+	int pwr;
+	char c;
 
+	pwr = ft_ldpwr(d);
+	ft_print_bit(d, sizeof(*d), 1);
+	s = ft_strsub(ft_print_bit(d, sizeof(*d), 0), 64, 64);
+	c = ft_print_bit(d, sizeof(*d), 0)[48];
+	return (ft_ldseparat(s, ft_ldpwr(d), c));
+}
 
+int		main()//int argc, char **argv)
+{
+	// char *str;
+	// var("%d", 255, 13);
+	// printf("%d %d", 255, 13);
+	// var("%s", "test string");
+	// var("%c", '&');
+	// printf("%d\n", ft_pwr(2, 7));
+	//
+	// if (argc == 3)
+	// {
+	// 	ft_putstr(str = ft_itoa_base(ft_atoi(argv[1]), ft_atoi(argv[2])));
+	// 	ft_putchar('\n');
+	// 	free(str);
+	// 	printf("%O\n", ft_atoi(argv[1]));
+	// }
+
+	//long double n = 770.000009;
+	long double n = -0.868;
+	//n = n * n * n * n * n * n * n;
+	//n = n * n * n * n * n * n * n;
+	//n = n * n;
+	//n = n * n;
+	//n = n * n;
+
+	// long *ptr;
+	// ptr = ((long *)(&n));
+	// *ptr = 0x8000000000000000;
+	//
+	// ptr = ((long *)(&n) + 1);
+    // *ptr = 0x0000000000007fff;
+
+	// *ptr = *ptr | 0x0000000000008000;
+	printf("%s\n", ft_ld(&n));
+	printf("%.5Lf\n", n);
 	return 0;
 }
