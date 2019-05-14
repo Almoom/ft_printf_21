@@ -58,6 +58,38 @@ void var(char *format, ...)
 	va_end (ap);
 }
 
+static char	*ft_calc_bit(int n)
+{
+	char *s;
+	char arr[2];
+
+	ft_bzero(arr, 2);
+	s = ft_strnew(0);
+	while (n > 0)
+	{
+		arr[0] = n % 2 + '0';
+		s = ft_strjoin_free(s, arr, 1, 0);
+		n /= 2;
+	}
+	s = ft_strrev_free(s, 1);
+	while (ft_strlen(s) < 8)
+		s = ft_strjoin_free("0", s, 0, 1);
+	return (s);
+}
+
+char		*ft_print_bit2(void *v, int size, int flag)
+{
+	char *s;
+
+	s = ft_strnew(0);
+	while (size-- > 0)
+	{
+		s = ft_strjoin_free(s, ft_calc_bit(*((unsigned char *)v + size)), 1, 0);
+		flag == 1 ? ft_putstr(ft_calc_bit(*((unsigned char *)v + size))) : 0;
+		flag == 1 ? ft_putstr(size > 0 ? "__" : "\n") : 0;
+	}
+	return (flag == 1 ? NULL : s);
+}
 
 // char	*ft_strcptlz(char *s, int c, int flag)
 // {
@@ -105,16 +137,23 @@ char *ft_itoa_base(int n, int base)
 
 char	*ft_strnzero(char *s, size_t n)
 {
-	size_t i;
-	char *arr;
-	int len;
+	size_t	i;
+	int		len;
 
 	i = -1;
-	arr = "0";
 	len = ft_strlen(s);
 	while (++i < n - len)
-		s = ft_strjoin(s, arr);
+	{
+		s = ft_strjoinchar(s, '0', 0);
+	}
 	return (s);
+}
+
+int 	ft_flagfree(int a, int b)
+{
+	if (a == b)
+		return (-1);
+	return (a < b ? 0 : 1);
 }
 
 char	*ft_strsum(char *s1, char *s2)
@@ -122,12 +161,12 @@ char	*ft_strsum(char *s1, char *s2)
 	int i;
 	char *sum;
 	size_t max;
+	int flag;
 
-
+	flag = ft_flagfree(ft_strlen(s1), ft_strlen(s2));
 	max = (ft_strlen(s1) > ft_strlen(s2)) ? ft_strlen(s1) : ft_strlen(s2);
 	s1 = ft_strnzero(s1, max);
 	s2 = ft_strnzero(s2, max);
-	//printf("%s__%s\n", s1, s2);
 	sum = ft_memset(ft_strnew(max + 1), '0', max);
 	i = -1;
 	while (s1[++i])
@@ -140,6 +179,8 @@ char	*ft_strsum(char *s1, char *s2)
 			sum[i] = (s1[i] + s2[i] + sum[i] - 3 * '0') % 10 + '0';
 		}
 	}
+	if (flag != -1)
+		flag == 0 ? free(s1) : free(s2);
 	return (sum);
 }
 
@@ -169,25 +210,6 @@ char	*ft_strncptlz(char *s, int c, int n, int withend)
 		s = ft_strrev_free(s, 0);
 	}
 	return (s);
-}
-
-char	*ft_strjoinchar(char *s, char c, int needfree)
-{
-	char	*t;
-	size_t	i;
-	size_t	l;
-
-	i = -1;
-	if (!s)
-		return (NULL);
-	l = ft_strlen(s);
-	if (l + 1 == 0 || !(t = ft_strnew(l + 1)))
-		return (NULL);
-	while (++i < l)
-		t[i] = s[i];
-	t[i] = c;
-	needfree == 1 ? free(s) : 0;
-	return (t);
 }
 
 char *ft_ldaccuracy(char *s, int t, int len)
@@ -226,13 +248,15 @@ char	*ft_strdvd(char *s, size_t len, int pwr, int acc)
 int		ft_ldpwr(long double *d)
 {
 	char *s;
+	char *t;
 	int pwr;
 	size_t i;
 
 	i = -1;
 	pwr = 1;
-	s = ft_strrev_free(ft_strsub(ft_print_bit(d, sizeof(*d), 0), 48, 16), 1);
-	printf("%s\n", s);
+	t = ft_print_bit(d, sizeof(*d));
+	s = ft_strrev_free(ft_strsub(t, 48, 16), 1);
+	free(t);
 	while (++i < 14)
 	{
 		if (s[14] == '1')
@@ -324,18 +348,16 @@ char	*ft_ld(long double *d)
 {
 	char *s;
 	int pwr;
-	char c;
 
 	pwr = ft_ldpwr(d);
-	ft_print_bit(d, sizeof(*d), 1);
-	s = ft_strsub(ft_print_bit(d, sizeof(*d), 0), 64, 64);
-	c = ft_print_bit(d, sizeof(*d), 0)[48];
-	return (ft_ldseparat(s, ft_ldpwr(d), c));
+	s = ft_strsub(ft_print_bit(d, sizeof(*d)), 64, 64);
+	return (ft_ldseparat(s, ft_ldpwr(d), ft_print_bit(d, sizeof(*d))[48]));
 }
 
 int		main()//int argc, char **argv)
 {
-	// char *str;
+
+	char *s;
 	// var("%d", 255, 13);
 	// printf("%d %d", 255, 13);
 	// var("%s", "test string");
@@ -350,13 +372,26 @@ int		main()//int argc, char **argv)
 	// 	printf("%O\n", ft_atoi(argv[1]));
 	// }
 
-	//long double n = 770.000009;
-	long double n = -0.868;
+	long double n = 770.000009;
+	//long double n = 0.25;
+	//int n = 10;
 	//n = n * n * n * n * n * n * n;
 	//n = n * n * n * n * n * n * n;
 	//n = n * n;
 	//n = n * n;
 	//n = n * n;
+
+	// s = ft_print_bit(&n, sizeof(n), 0);
+	// printf("%s\n", s);
+	// free(s);
+
+	// s = ft_strsum("34", "110");
+	// printf("%s\n", s);
+	// free(s);
+	//s = ft_pwr2(1);
+
+	//printf("%s\n", s);
+	//free(s);
 
 	// long *ptr;
 	// ptr = ((long *)(&n));
@@ -366,7 +401,12 @@ int		main()//int argc, char **argv)
     // *ptr = 0x0000000000007fff;
 
 	// *ptr = *ptr | 0x0000000000008000;
-	printf("%s\n", ft_ld(&n));
-	printf("%.5Lf\n", n);
-	return 0;
+		s = ft_ld(&n);
+		printf("%s\n", s);
+		free(s);
+	//printf("%.5Lf\n", n);
+
+
+
+	return (0);
 }
